@@ -1,6 +1,7 @@
 ﻿using ADA.API.IServices;
 using ADA.API.Utility;
 using ADAClassLibrary;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -40,7 +41,7 @@ namespace ADA.API.Controllers
 
 
         }
-
+        [Authorize]
         [HttpPost("GetAllCargoStatusByBarcode/{Barcode}")]
         public Response GetAllCargoStatusByBarcode(string Barcode)
         {

@@ -19,6 +19,7 @@ using System.Net;
 using System.Net.Mail;
 using System.Text;
 using System.Net.Http;
+using Microsoft.AspNetCore.Authorization;
 
 namespace ADA.API.Controllers
 {
@@ -48,8 +49,8 @@ namespace ADA.API.Controllers
 
             _httpContextAccessor = httpContextAccessor;
         }
-        
-        // Register an Individual
+
+        [AllowAnonymous]
         [HttpPost("Add")]
         public Response Add([FromForm] Register obj)
         {
@@ -129,6 +130,7 @@ namespace ADA.API.Controllers
         }
 
         // Register Group
+        [AllowAnonymous]
         [HttpPost("AddGroup")]
         public Response AddGroup([FromForm] Register obj)
         {
@@ -205,6 +207,7 @@ namespace ADA.API.Controllers
         }
 
         // Register Corporate
+        [AllowAnonymous]
         [HttpPost("AddCorporate")]
         public Response AddCorporate([FromForm] Register obj)
         {
@@ -281,18 +284,15 @@ namespace ADA.API.Controllers
             }
         }
 
-
+        [Authorize]
         [HttpPost("GetAllGroupUsersByID")]
 
         public Response GetAllGroupUsersByID(int Id)
         {
-            ClaimDTO claimDTO = null;
             Response response = new Response();
 
             try
             {
-                //claimDTO = TokenManager.GetValidateToken(Request);
-                //if (claimDTO == null) return CustomStatusResponse.GetResponse(401);
                 var res = _service.GetAllGroupUsersById(Id);
 
                 response = CustomStatusResponse.GetResponse(200);
@@ -302,7 +302,6 @@ namespace ADA.API.Controllers
 
 
                     response.Data = res;
-                    //response.Token = TokenManager.GenerateToken(claimDTO);
                     response.ResponseMsg = "Get Of Group Data  successfully!";
                 }
                 return response;
@@ -331,17 +330,15 @@ namespace ADA.API.Controllers
             }
 
         }
-        
+
+        [Authorize]
         [HttpPost("GetAllFlightMembersByUserID")]
         public Response GetAllFlightMembersByUserID(int Id)
         {
-            ClaimDTO claimDTO = null;
             Response response = new Response();
 
             try
             {
-                //claimDTO = TokenManager.GetValidateToken(Request);
-                //if (claimDTO == null) return CustomStatusResponse.GetResponse(401);
                 var res = _service.GetAllFlightMembersByUserID(Id);
 
                 response = CustomStatusResponse.GetResponse(200);
@@ -351,7 +348,6 @@ namespace ADA.API.Controllers
 
 
                     response.Data = res;
-                    //response.Token = TokenManager.GenerateToken(claimDTO);
                     response.ResponseMsg = "Get Of Group Data  successfully!";
                 }
                 return response;
@@ -381,7 +377,7 @@ namespace ADA.API.Controllers
 
         }
 
-
+        [Authorize]
         [HttpPost("MyprofileMembersByID")]
         public Pagination MyprofileMembersByID(int Id)
         {
@@ -399,106 +395,20 @@ namespace ADA.API.Controllers
                 var length = Request.Form["length"].FirstOrDefault();
                 var sortColumn = Request.Form["columns[" + Request.Form["order[0][column]"].FirstOrDefault() + "][name]"].FirstOrDefault();
                 var sortColumnDir = Request.Form["order[0][dir]"].FirstOrDefault();
-                var searchValue = Request.Form["search[value]"].FirstOrDefault();
-                //var start = HttpContext.Request.Form["sortColumnDir"].FirstOrDefault();
-                //var length = HttpContext.Request.Form["length"].FirstOrDefault();
-                //var sortColumn = Request.Form["columns[" + Request.Form["order[0][column]"].FirstOrDefault() + "][name]"].FirstOrDefault();
-                //var sortColumnDir = Request.Form["order[0][dir]"].FirstOrDefault();
-                //var searchValue = Request.Form["search[value]"].FirstOrDefault();
-                //var FromDate = HttpContext.Request.Headers["FromDate"].FirstOrDefault();
-                //var ToDate = HttpContext.Request.Headers["ToDate"].FirstOrDefault();
-                //var AirCraftType = HttpContext.Request.Headers["AirCraftType"].FirstOrDefault();
-
-                //Paging Size (10,20,50,100)    
+                var searchValue = Request.Form["search[value]"].FirstOrDefault(); 
                 int pageSize = length != null ? Convert.ToInt32(length) : 0;
 
                 int skip = start != null ? Convert.ToInt32(start) : 0;
                 int recordsTotal = 0;
 
-
-
-
-
                 var Data = _service.GetAllGroupUsersById(Id);
 
-                //Sorting    
-                //if (!(string.IsNullOrEmpty(sortColumn) && string.IsNullOrEmpty(sortColumnDir)))
-                //{
-                //    Data = Data.OrderBy(sortColumn + " " + sortColumnDir).ToList();
-                //}
-                //if (!(string.IsNullOrEmpty(sortColumn) && string.IsNullOrEmpty(sortColumnDir)))
-                //{
-
-
-                //    string str = sortColumn;
-
-
-                //    sortColumn = sortColumn = char.ToUpper(str[0]) + str.Substring(1);
-
-
-
-                //    if (sortColumnDir == "asc")
-                //    {
-
-
-                //        Data = Data.OrderBy(item => typeof(RegisterGroup).GetProperty(sortColumn)?.GetValue(item)).ToList();
-                //    }
-                //    else
-                //    {
-                //        Data = Data.OrderByDescending(item => typeof(RegisterGroup).GetProperty(sortColumn)?.GetValue(item)).ToList();
-                //    }
-                //}
-
-
-
-                //Search  
+       
                 if (!string.IsNullOrEmpty(searchValue))
                 {
                     searchValue = searchValue.ToString().ToLower();
 
                     Data = Data.Where(m => m.Name == null ? false : m.Name.ToString().ToLower().Contains(searchValue)
-
-
-                   //   || (m.Email == null ? false : m.Email.ToString().ToLower().Contains(searchValue))
-                   // || (m.Nationality == null ? false : m.Nationality.ToString().ToLower().Contains(searchValue))
-                   //                    || (m.Mobile == null ? false : m.Mobile.ToString().ToLower().Contains(searchValue))
-
-                   // || (m.Status == null ? false : m.Status.ToString().ToLower().Contains(searchValue))
-                   // || (m.Aircraft == null ? false : m.Aircraft.ToString().ToLower().Contains(searchValue))
-                   //|| (m.Color == null ? false : m.Color.ToString().ToLower().Contains(searchValue))
-                   //|| (m.Pilot1 == null ? false : m.Pilot1.ToString().ToLower().Contains(searchValue))
-                   //|| (m.Pilot2 == null ? false : m.Pilot2.ToString().ToLower().Contains(searchValue))
-                   //|| (m.Pilot3 == null ? false : m.Pilot3.ToString().ToLower().Contains(searchValue))
-                   //|| (m.FA1 == null ? false : m.FA1.ToString().ToLower().Contains(searchValue))
-                   //|| (m.FA2 == null ? false : m.FA2.ToString().ToLower().Contains(searchValue))
-                   //|| (m.FA3 == null ? false : m.FA3.ToString().ToLower().Contains(searchValue))
-                   //|| (m.FA4 == null ? false : m.FA4.ToString().ToLower().Contains(searchValue))
-                   //|| (m.Agent == null ? false : m.Agent.ToString().ToLower().Contains(searchValue))
-                   //|| (m.FltRemarks == null ? false : m.FltRemarks.ToString().ToLower().Contains(searchValue))
-                   //|| (m.SubManifestColor == null ? false : m.SubManifestColor.ToString().ToLower().Contains(searchValue))
-                   //|| (m.CustCode == null ? false : m.CustCode.ToString().ToLower().Contains(searchValue))
-                   //|| (m.FltRoute == null ? false : m.FltRoute.ToString().ToLower().Contains(searchValue))
-                   //|| (m.Payload.ToString().ToLower().Contains(searchValue))
-                   //|| (m.Fuel.ToString().Contains(searchValue))
-                   //|| (m.Temperature.ToString().ToLower().Contains(searchValue))
-                   //|| (m.GateNum.ToString().ToLower().Contains(searchValue))
-                   //|| (m.RsrvdSeats.ToString().ToLower().Contains(searchValue))
-                   ////|| (m.UsePaxList.ToString().ToLower().Contains(searchValue == "1" ? "true" : "false"))
-                   ////|| (m.SeatMap.ToString().ToLower().Contains(searchValue == "1" ? "true" : "false"))
-                   ////|| (m.SplitGender.ToString().ToLower().Contains(searchValue == "1" ? "true" : "false"))
-                   ////|| (m.ShowRCS.ToString().ToLower().Contains(searchValue == "1" ? "true" : "false"))
-                   //|| (m.FwdCargo1.ToString().ToLower().Contains(searchValue))
-                   //|| (m.FwdCargo2.ToString().ToLower().Contains(searchValue))
-                   //|| (m.FwdCargo3.ToString().ToLower().Contains(searchValue))
-                   //|| (m.FwdCargo4.ToString().ToLower().Contains(searchValue))
-                   //|| (m.AftCargo1.ToString().ToLower().Contains(searchValue))
-                   //|| (m.AftCargo2.ToString().ToLower().Contains(searchValue))
-                   //|| (m.AftCargo3.ToString().ToLower().Contains(searchValue))
-                   //|| (m.AftCargo4.ToString().ToLower().Contains(searchValue))
-                   //|| (m.AftCargo5.ToString().ToLower().Contains(searchValue))
-                   //|| (m.AftCargo6.ToString().ToLower().Contains(searchValue))
-                   //|| (m.ActualDepTime.ToString().ToLower().Contains(searchValue))
-
 
                    )?.ToList();
                 }
@@ -524,36 +434,25 @@ namespace ADA.API.Controllers
                     recordsFiltered = recordsTotal,
                     recordsTotal = recordsTotal,
                     Status = 200,
-                    // Token = TokenManager.GenerateToken(claimDTO),
                     Data = Data
                 };
                 return pagination;
             }
             catch (DbException ex)
             {
-                //WriteFileLogger.WriteLog(_env, Convert.ToString(Request.Path.HasValue == false ? "" : Request.Path.Value), _controllerName, "GetAll", claimDTO.Username, Convert.ToInt32(claimDTO.UserId), claimDTO.RoleId, 600, Convert.ToString(ex.Message), Convert.ToString(ex.InnerException));
-                //_loggerService.CreateLog(Convert.ToString(Request.Path.HasValue == false ? "" : Request.Path.Value), _controllerName, "GetAll", claimDTO.Username, Convert.ToInt32(claimDTO.UserId), claimDTO.RoleId, 600, Convert.ToString(ex.Message), Convert.ToString(ex.InnerException));
-
                 Pagination pagination = new Pagination()
                 {
-
-                    //ResponseMsg = IsDBExceptionEnabeled ? "An Error Occured" : ex.Message,
                     Status = 600,
-                    //  Token = TokenManager.GenerateToken(claimDTO),
                     Data = null,
                 };
                 return pagination;
             }
             catch (Exception ex)
             {
-                //    WriteFileLogger.WriteLog(_env, Convert.ToString(Request.Path.HasValue == false ? "" : Request.Path.Value), _controllerName, "GetAll", claimDTO.Username, Convert.ToInt32(claimDTO.UserId), claimDTO.RoleId, 500, Convert.ToString(ex.Message), Convert.ToString(ex.InnerException));
-                //    _loggerService.CreateLog(Convert.ToString(Request.Path.HasValue == false ? "" : Request.Path.Value), _controllerName, "GetAll", claimDTO.Username, Convert.ToInt32(claimDTO.UserId), claimDTO.RoleId, 500, Convert.ToString(ex.Message), Convert.ToString(ex.InnerException));
-
                 Pagination pagination = new Pagination()
                 {
                     ResponseMsg = "Internal server error!",
                     Status = 500,
-                    //  Token = TokenManager.GenerateToken(claimDTO),
                     Data = null,
                 };
                 return pagination;
@@ -562,6 +461,7 @@ namespace ADA.API.Controllers
 
         }
 
+        [Authorize]
         [HttpPost("GetSingleMemberById")]
         public Response GetSingleMemberById(UserIdWithType obj)
         {
@@ -608,6 +508,7 @@ namespace ADA.API.Controllers
         }
 
         // Update Members
+        [Authorize]
         [HttpPost("UpdateMembers")]
         public Response UpdateMembers([FromForm] Register obj)
         {
@@ -677,7 +578,7 @@ namespace ADA.API.Controllers
             }
         }
 
-
+        [AllowAnonymous]
         [HttpPost("AddOtherGroupMember")]
         public Response AddOtherGroupMember([FromForm] Register obj)
         {
@@ -745,7 +646,7 @@ namespace ADA.API.Controllers
             }
         }
 
-
+        [AllowAnonymous]
         [HttpPost("AddOtherCorporateMember")]
         public Response AddOtherCorporateMember([FromForm] Register obj)
         {
@@ -813,7 +714,7 @@ namespace ADA.API.Controllers
             }
         }
 
-
+        [Authorize]
         [HttpPost("DeleteGroupMember/{Id}")]
         public Response DeleteGroupMember(int Id)
         {
@@ -823,22 +724,12 @@ namespace ADA.API.Controllers
 
             try
             {
-                //claimDTO = TokenManager.GetValidateToken(Request);
-                //if (claimDTO == null) return CustomStatusResponse.GetResponse(401);
-
-
-
                 var res = _service.DeleteGroupMember(Id);
 
                 response = CustomStatusResponse.GetResponse(200);
-                //response.Token = TokenManager.GenerateToken(claimDTO);
                 if (res != null)
                 {
-
-
                     response.Data = res;
-
-
                 }
 
                 return response;
@@ -848,36 +739,21 @@ namespace ADA.API.Controllers
             }
             catch (DbException ex)
             {
-                //WriteFileLogger.WriteLog(_env, Convert.ToString(Request.Path.HasValue == false ? "" : Request.Path.Value), _controllerName, "GetBranchById", claimDTO.Username, Convert.ToInt32(claimDTO.UserId), claimDTO.RoleId, 600, Convert.ToString(ex.Message), Convert.ToString(ex.InnerException));
-                //_loggerService.CreateLog(Convert.ToString(Request.Path.HasValue == false ? "" : Request.Path.Value), _controllerName, "GetBranchById", claimDTO.Username, Convert.ToInt32(claimDTO.UserId), claimDTO.RoleId, 600, Convert.ToString(ex.Message), Convert.ToString(ex.InnerException));
 
                 response = CustomStatusResponse.GetResponse(600);
-                //response.Token = TokenManager.GenerateToken(claimDTO);
-                //if (IsDBExceptionEnabeled)
-                //{
-                //    response.ResponseMsg = "An Error Occured";
-                //}
-                //else
-                //{
-
                 response.ResponseMsg = ex.Message;
-                //}
-
                 return response;
             }
             catch (Exception ex)
             {
-                //WriteFileLogger.WriteLog(_env, Convert.ToString(Request.Path.HasValue == false ? "" : Request.Path.Value), _controllerName, "GetBranchById", claimDTO.Username, Convert.ToInt32(claimDTO.UserId), claimDTO.RoleId, 500, Convert.ToString(ex.Message), Convert.ToString(ex.InnerException));
-                //_loggerService.CreateLog(Convert.ToString(Request.Path.HasValue == false ? "" : Request.Path.Value), _controllerName, "GetBranchById", claimDTO.Username, Convert.ToInt32(claimDTO.UserId), claimDTO.RoleId, 500, Convert.ToString(ex.Message), Convert.ToString(ex.InnerException));
-
                 response = CustomStatusResponse.GetResponse(500);
-                // response.Token = TokenManager.GenerateToken(claimDTO);
                 response.ResponseMsg = "Internal server error!";
                 return response;
             }
 
         }
-     
+
+        [Authorize]
         [HttpPost("DeleteCorporateMember/{Id}")]
         public Response DeleteCorporateMember(int Id)
         {
@@ -887,15 +763,9 @@ namespace ADA.API.Controllers
 
             try
             {
-                //claimDTO = TokenManager.GetValidateToken(Request);
-                //if (claimDTO == null) return CustomStatusResponse.GetResponse(401);
-
-
-
                 var res = _service.DeleteCorporateMember(Id);
 
                 response = CustomStatusResponse.GetResponse(200);
-                //response.Token = TokenManager.GenerateToken(claimDTO);
                 if (res != null)
                 {
 
@@ -912,37 +782,23 @@ namespace ADA.API.Controllers
             }
             catch (DbException ex)
             {
-                //WriteFileLogger.WriteLog(_env, Convert.ToString(Request.Path.HasValue == false ? "" : Request.Path.Value), _controllerName, "GetBranchById", claimDTO.Username, Convert.ToInt32(claimDTO.UserId), claimDTO.RoleId, 600, Convert.ToString(ex.Message), Convert.ToString(ex.InnerException));
-                //_loggerService.CreateLog(Convert.ToString(Request.Path.HasValue == false ? "" : Request.Path.Value), _controllerName, "GetBranchById", claimDTO.Username, Convert.ToInt32(claimDTO.UserId), claimDTO.RoleId, 600, Convert.ToString(ex.Message), Convert.ToString(ex.InnerException));
-
                 response = CustomStatusResponse.GetResponse(600);
-                //response.Token = TokenManager.GenerateToken(claimDTO);
-                //if (IsDBExceptionEnabeled)
-                //{
-                //    response.ResponseMsg = "An Error Occured";
-                //}
-                //else
-                //{
-
+              
                 response.ResponseMsg = ex.Message;
-                //}
 
                 return response;
             }
             catch (Exception ex)
             {
-                //WriteFileLogger.WriteLog(_env, Convert.ToString(Request.Path.HasValue == false ? "" : Request.Path.Value), _controllerName, "GetBranchById", claimDTO.Username, Convert.ToInt32(claimDTO.UserId), claimDTO.RoleId, 500, Convert.ToString(ex.Message), Convert.ToString(ex.InnerException));
-                //_loggerService.CreateLog(Convert.ToString(Request.Path.HasValue == false ? "" : Request.Path.Value), _controllerName, "GetBranchById", claimDTO.Username, Convert.ToInt32(claimDTO.UserId), claimDTO.RoleId, 500, Convert.ToString(ex.Message), Convert.ToString(ex.InnerException));
 
                 response = CustomStatusResponse.GetResponse(500);
-                // response.Token = TokenManager.GenerateToken(claimDTO);
                 response.ResponseMsg = "Internal server error!";
                 return response;
             }
 
         }
 
-
+        [Authorize]
         [HttpPost("Update")]
         public Response Update([FromForm] Register obj)
         {
@@ -1049,6 +905,7 @@ namespace ADA.API.Controllers
             }
         }
 
+        [Authorize]
         [HttpPost("UpdateGroup")]
         public Response UpdateGroup([FromForm] Register obj)
         {
@@ -1153,7 +1010,7 @@ namespace ADA.API.Controllers
             }
         }
 
-
+        [Authorize]
         [HttpPost("UpdateCorporate")]
         public Response UpdateCorporate([FromForm] Register obj)
         {
@@ -1258,24 +1115,20 @@ namespace ADA.API.Controllers
             }
         }
 
-
+        [Authorize]
+        [AuthorizeUserIdDocument("Id")]
         [HttpPost("GetDocumentByUserId/{Id}")]
         public Response GetDocumentByUserId(int Id)
         {
-
-            //ClaimDTO claimDTO = null;
             Response response = new Response();
 
             try
             {
-                //claimDTO = TokenManager.GetValidateToken(Request);
-                //if (claimDTO == null) return CustomStatusResponse.GetResponse(401);
-
+                if(!(int.Parse(User.FindFirst("id")?.Value)==Id)) return CustomStatusResponse.GetResponse(401);
 
                 var res = _service.GetDocumentByUserId(Id);
 
                 response = CustomStatusResponse.GetResponse(200);
-                //response.Token = TokenManager.GenerateToken(claimDTO);
 
                 if (res != null)
                 {
@@ -1293,38 +1146,30 @@ namespace ADA.API.Controllers
             catch (DbException ex)
             {
                 response = CustomStatusResponse.GetResponse(600);
-                //response.Token = TokenManager.GenerateToken(claimDTO);
                 response.ResponseMsg = ex.Message;
                 return response;
             }
             catch (Exception ex)
             {
                 response = CustomStatusResponse.GetResponse(500);
-               // response.Token = TokenManager.GenerateToken(claimDTO);
                 response.ResponseMsg = "Internal server error!";
                 return response;
             }
 
         }
 
-
-         [HttpPost("GetGroupDocumentByUserId/{Id}")]
+        [Authorize]
+        [AuthorizeUserIdDocument("Id")]
+        [HttpPost("GetGroupDocumentByUserId/{Id}")]
         public Response GetGroupDocumentByUserId(int Id)
         {
-
-            //ClaimDTO claimDTO = null;
             Response response = new Response();
 
             try
             {
-                //claimDTO = TokenManager.GetValidateToken(Request);
-                //if (claimDTO == null) return CustomStatusResponse.GetResponse(401);
-
-
                 var res = _service.GetGroupDocumentByUserId(Id);
 
                 response = CustomStatusResponse.GetResponse(200);
-                //response.Token = TokenManager.GenerateToken(claimDTO);
 
                 if (res != null)
                 {
@@ -1342,38 +1187,30 @@ namespace ADA.API.Controllers
             catch (DbException ex)
             {
                 response = CustomStatusResponse.GetResponse(600);
-                //response.Token = TokenManager.GenerateToken(claimDTO);
                 response.ResponseMsg = ex.Message;
                 return response;
             }
             catch (Exception ex)
             {
                 response = CustomStatusResponse.GetResponse(500);
-               // response.Token = TokenManager.GenerateToken(claimDTO);
                 response.ResponseMsg = "Internal server error!";
                 return response;
             }
 
         }
 
-
+        [Authorize]
+        [AuthorizeUserIdDocument("Id")]
         [HttpPost("GetCorporateDocumentByUserId/{Id}")]
         public Response GetCorporateDocumentByUserId(int Id)
         {
-
-            //ClaimDTO claimDTO = null;
             Response response = new Response();
 
             try
             {
-                //claimDTO = TokenManager.GetValidateToken(Request);
-                //if (claimDTO == null) return CustomStatusResponse.GetResponse(401);
-
-
                 var res = _service.GetCorporateDocumentByUserId(Id);
 
                 response = CustomStatusResponse.GetResponse(200);
-                //response.Token = TokenManager.GenerateToken(claimDTO);
 
                 if (res != null)
                 {
@@ -1391,21 +1228,19 @@ namespace ADA.API.Controllers
             catch (DbException ex)
             {
                 response = CustomStatusResponse.GetResponse(600);
-                //response.Token = TokenManager.GenerateToken(claimDTO);
                 response.ResponseMsg = ex.Message;
                 return response;
             }
             catch (Exception ex)
             {
                 response = CustomStatusResponse.GetResponse(500);
-                // response.Token = TokenManager.GenerateToken(claimDTO);
                 response.ResponseMsg = "Internal server error!";
                 return response;
             }
 
         }
 
-
+        [AllowAnonymous]
         [HttpPost("ForgotPassword")]
         public Response ForgotPassword([FromForm] CodeVerification obj)
         {
@@ -1507,9 +1342,8 @@ namespace ADA.API.Controllers
             }
         }
 
-
+        [AllowAnonymous]
         [HttpPost("ResetPassword")]
-
         public Response ResetPassword([FromForm] CodeVerification obj)
         {
 
@@ -1570,23 +1404,17 @@ namespace ADA.API.Controllers
 
         }
 
+        [Authorize]
         [HttpPost("ActiveInactiveByUserId/{Id}")]
         public Response ActiveInactiveByUserId(int Id)
         {
-
-            //ClaimDTO claimDTO = null;
             Response response = new Response();
 
             try
             {
-                //claimDTO = TokenManager.GetValidateToken(Request);
-                //if (claimDTO == null) return CustomStatusResponse.GetResponse(401);
-
-
                 var res = _service.ActiveInactiveByUserId(Id);
 
                 response = CustomStatusResponse.GetResponse(200);
-                //response.Token = TokenManager.GenerateToken(claimDTO);
 
                 if (res != null)
                 {
@@ -1604,20 +1432,19 @@ namespace ADA.API.Controllers
             catch (DbException ex)
             {
                 response = CustomStatusResponse.GetResponse(600);
-                //response.Token = TokenManager.GenerateToken(claimDTO);
                 response.ResponseMsg = ex.Message;
                 return response;
             }
             catch (Exception ex)
             {
                 response = CustomStatusResponse.GetResponse(500);
-                // response.Token = TokenManager.GenerateToken(claimDTO);
                 response.ResponseMsg = "Internal server error!";
                 return response;
             }
 
         }
 
+        [AllowAnonymous]
         [HttpGet]
         public async Task<ActionResult<string>> sendSMS(dynamic res, bool sync)
         {

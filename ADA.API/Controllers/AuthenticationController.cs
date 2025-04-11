@@ -2,6 +2,7 @@
 using ADA.IServices;
 using ADAClassLibrary;
 using ADAClassLibrary.DTOLibraries;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -19,52 +20,51 @@ namespace ADA.API.Controllers
     [ApiController]
     public class AuthenticationController : ControllerBase
     {
+        private readonly TokenManager _tokenManager;
         private readonly IMemoryCache _memoryCache;
         private readonly IAuthenticationService _authenticationService;
         private readonly IWebHostEnvironment _env;
-       
+        private readonly IConfiguration _configuration;
         public bool IsDBExceptionEnabeled = false;
-        public AuthenticationController(IConfiguration confgiuration, IAuthenticationService authenticationService, IMemoryCache memoryCache, IWebHostEnvironment env)
+        public AuthenticationController(IConfiguration confgiuration, IAuthenticationService authenticationService, IMemoryCache memoryCache, IWebHostEnvironment env, TokenManager tokenManager)
         {
-
+            _configuration = confgiuration;
             _memoryCache = memoryCache;
             _authenticationService = authenticationService;
             _env = env;
+            _tokenManager = tokenManager;
         }
-      
 
+        [AllowAnonymous]
         [HttpPost("Authenticate")]
-        public Response Authenticate(LoginCredentials obj)
+        public async Task<Response> Authenticate(LoginCredentials obj)
         {
             Response response = new Response();
             ClaimDTO claimDTO = new ClaimDTO();
             try
             {
+                var jwtSettings = _configuration.GetSection("JwtSettings");
 
-               // obj.Password = Secure.EncryptData(obj.Password);
+                // obj.Password = Secure.EncryptData(obj.Password);
                 var user = _authenticationService.Authenticate(obj);
                 if (user == null) return CustomStatusResponse.GetResponse(320);
                 else
                 {
                  
                     response = CustomStatusResponse.GetResponse(200);
-                    response.Token = TokenManager.GenerateToken(user);
+                    response.Token = _tokenManager.GenerateJwtToken(user);
                     response.Data = new
                     {
                         DataObj = user,
-                        //Menu = menu,
-                        //IndexPageController = menu[0].DynamicModulePagesMenus[0].UrlController,
-                        //IndexPageAction = menu[0].DynamicModulePagesMenus[0].UrlAction
-
                     };
+
+                    await _authenticationService.SaveUserToken(user.Id, response.Token, DateTime.UtcNow, DateTime.UtcNow.AddMinutes(double.Parse(jwtSettings["ExpiryInMinutes"])));
+
                     return response;
                 }
             }
             catch (DbException ex)
             {
-                //WriteFileLogger.WriteLog(_env, Convert.ToString(Request.Path.HasValue == false ? "" : Request.Path.Value), _controllerName, "Authenticate", claimDTO.Username, Convert.ToInt32(claimDTO.UserId), claimDTO.RoleId, 600, Convert.ToString(ex.Message), Convert.ToString(ex.InnerException));
-                //_loggerService.CreateLog(Convert.ToString(Request.Path.HasValue == false ? "" : Request.Path.Value), _controllerName, "Authenticate", claimDTO.Username, Convert.ToInt32(claimDTO.UserId), claimDTO.RoleId, 600, Convert.ToString(ex.Message), Convert.ToString(ex.InnerException));
-
                 response = CustomStatusResponse.GetResponse(600);
                 if (IsDBExceptionEnabeled)
                 {
@@ -79,9 +79,6 @@ namespace ADA.API.Controllers
             }
             catch (Exception ex)
             {
-                //WriteFileLogger.WriteLog(_env, Convert.ToString(Request.Path.HasValue == false ? "" : Request.Path.Value), _controllerName, "Authenticate", claimDTO.Username, Convert.ToInt32(claimDTO.UserId), claimDTO.RoleId, 500, Convert.ToString(ex.Message), Convert.ToString(ex.InnerException));
-                //_loggerService.CreateLog(Convert.ToString(Request.Path.HasValue == false ? "" : Request.Path.Value), _controllerName, "Authenticate", claimDTO.Username, Convert.ToInt32(claimDTO.UserId), claimDTO.RoleId, 500, Convert.ToString(ex.Message), Convert.ToString(ex.InnerException));
-
                 response = CustomStatusResponse.GetResponse(500);
                 response.ResponseMsg = ex.Message;
                 return response;
@@ -89,7 +86,7 @@ namespace ADA.API.Controllers
         }
 
 
-
+        [Authorize]
         [HttpPost("Logout")]
         public Response Logout()
         {
@@ -97,11 +94,12 @@ namespace ADA.API.Controllers
             try
             {
 
+                var userId = int.Parse(User.FindFirst("id")?.Value);
+                var token = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
 
-                string token = Request.Headers["Authorization"];
                 if (token != null)
                 {
-                    TokenManager.RemoveToken(token);
+                    _authenticationService.LogoutAsync(userId,token);
                 }
 
                 response = CustomStatusResponse.GetResponse(200);
@@ -112,9 +110,6 @@ namespace ADA.API.Controllers
             }
             catch (DbException ex)
             {
-                //WriteFileLogger.WriteLog(_env, Convert.ToString(Request.Path.HasValue == false ? "" : Request.Path.Value), _controllerName, "Add", "", 0, 0, 600, Convert.ToString(ex.Message), Convert.ToString(ex.InnerException));
-                //_loggerService.CreateLog(Convert.ToString(Request.Path.HasValue == false ? "" : Request.Path.Value), _controllerName, "Add", "", 0, 0, 600, Convert.ToString(ex.Message), Convert.ToString(ex.InnerException));
-
                 response = CustomStatusResponse.GetResponse(600);
                 response.Token = null;
                 if (IsDBExceptionEnabeled)
@@ -130,9 +125,6 @@ namespace ADA.API.Controllers
             }
             catch (Exception ex)
             {
-                //WriteFileLogger.WriteLog(_env, Convert.ToString(Request.Path.HasValue == false ? "" : Request.Path.Value), _controllerName, "Add", "", 0, 0, 500, Convert.ToString(ex.Message), Convert.ToString(ex.InnerException));
-                //_loggerService.CreateLog(Convert.ToString(Request.Path.HasValue == false ? "" : Request.Path.Value), _controllerName, "Add", "", 0, 0, 500, Convert.ToString(ex.Message), Convert.ToString(ex.InnerException));
-
                 response = CustomStatusResponse.GetResponse(500);
                 response.Token = null;
                 response.ResponseMsg = "Internal server error!";
@@ -142,6 +134,6 @@ namespace ADA.API.Controllers
 
     }
 
-  
+
 }
 

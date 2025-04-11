@@ -34,7 +34,7 @@
             };
             else if (StatusCode == 700) return new Response()
             {
-                Status = 700
+                Status = 700,
             };
             else return new Response()
             {

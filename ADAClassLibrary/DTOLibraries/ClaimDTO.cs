@@ -11,7 +11,8 @@ namespace ADAClassLibrary.DTOLibraries
         public int Id { get; set; }
         public string Username { get; set; }
         public string RegisterType { get; set; }
-        
+        public int TokenVersion { get; set; }
+
 
     }
 
