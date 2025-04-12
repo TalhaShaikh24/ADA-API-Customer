@@ -269,7 +269,6 @@ namespace ADA.API.Controllers
         [HttpPost("GetAll")]
         public Pagination GetAll()
         {
-         
             try
             {
                 

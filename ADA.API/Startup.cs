@@ -6,17 +6,20 @@ using ADA.API.Repositories;
 using ADA.API.Services;
 using ADA.API.Utility;
 using ADA.IServices;
+using ADAClassLibrary;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Newtonsoft.Json.Linq;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using System;
 using System.Collections.Generic;
@@ -58,11 +61,6 @@ namespace ADA.API
                   options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
               });
 
-            //services.AddControllers(options =>
-            //{
-            //    options.Filters.Add(new Utility.AuthorizeAttribute());
-            //});
-
             services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -85,22 +83,32 @@ namespace ADA.API
                 {
                     OnTokenValidated = async context =>
                     {
-                        var userId = context.Principal.FindFirst("id")?.Value;
-                        var token = context.SecurityToken as JwtSecurityToken;
-                        var tokenFromRequest = context.Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+                        var tokenFromRequest = context.Request.Cookies["AuthToken"];
 
-                        if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(tokenFromRequest))
+                        if (string.IsNullOrEmpty(tokenFromRequest))
                         {
-                            context.Fail("Unauthorized: Missing user ID or token.");
+                            context.Fail(new JsonResult(CustomStatusResponse.GetResponse(401)).ToString());
                             return;
                         }
 
+                        var jsonToken = new JwtSecurityTokenHandler().ReadToken(tokenFromRequest) as JwtSecurityToken;
+
+                        if (jsonToken == null)
+                        {
+                            context.Fail(new JsonResult(CustomStatusResponse.GetResponse(401)).ToString());
+
+                            return;
+                        }
+
+                        var userId = jsonToken?.Claims?.FirstOrDefault(c => c.Type == "Id")?.Value;
+
                         var authService = context.HttpContext.RequestServices.GetRequiredService<IAuthenticationService>();
+                      
                         var user = authService.GetUserByIdAsync(int.Parse(userId));
 
                         if (user == null)
                         {
-                            context.Fail("Unauthorized");
+                            context.Fail(new JsonResult(CustomStatusResponse.GetResponse(401)).ToString());
                             return;
                         }
 
@@ -108,14 +116,14 @@ namespace ADA.API
 
                         if (currentToken != tokenFromRequest)
                         {
-                            context.Fail("Token no longer valid");
+                            context.Fail(new JsonResult(CustomStatusResponse.GetResponse(401)).ToString());
                         }
 
                         bool isValid = await authService.IsTokenValidAsync(int.Parse(userId), tokenFromRequest);
 
                         if (!isValid)
                         {
-                            context.Fail("Unauthorized: Token has been logged out or invalidated.");
+                            context.Fail(new JsonResult(CustomStatusResponse.GetResponse(401)).ToString());
                         }
                     },
                     OnMessageReceived = context =>
@@ -126,6 +134,7 @@ namespace ADA.API
                         {
                             context.Token = token;
                         }
+
                         return Task.CompletedTask;
                     }
                 };

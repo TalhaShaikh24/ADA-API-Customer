@@ -107,8 +107,10 @@ namespace ADA.API.Controllers
             try
             {
 
-                var userId = int.Parse(User.FindFirst("id")?.Value);
-                var token = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+
+                var userId = int.Parse(User.FindFirst("Id")?.Value);
+
+                var token = Request.Cookies["AuthToken"];
 
                 if (token != null)
                 {
