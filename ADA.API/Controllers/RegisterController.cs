@@ -20,7 +20,7 @@ using System.Net.Mail;
 using System.Text;
 using System.Net.Http;
 using Microsoft.AspNetCore.Authorization;
-
+using AuthorizeAttribute = ADA.API.Utility.AuthorizeAttribute;
 namespace ADA.API.Controllers
 {
     [Route("api/[controller]")]

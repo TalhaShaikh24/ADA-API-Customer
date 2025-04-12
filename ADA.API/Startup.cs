@@ -6,6 +6,7 @@ using ADA.API.Repositories;
 using ADA.API.Services;
 using ADA.API.Utility;
 using ADA.IServices;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
@@ -21,6 +22,7 @@ using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
+using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -49,6 +51,17 @@ namespace ADA.API
             {
                 throw new ArgumentException("JWT SecretKey must be at least 32 characters long");
             }
+            services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+             .AddCookie(options =>
+              {
+                  options.Cookie.HttpOnly = true;
+                  options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+              });
+
+            services.AddControllers(options =>
+            {
+                options.Filters.Add(new Utility.AuthorizeAttribute());
+            });
 
             services.AddAuthentication(options =>
             {
@@ -66,7 +79,7 @@ namespace ADA.API
                     ValidateLifetime = true,
                     ValidateIssuerSigningKey = true,
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey)),
-                    ClockSkew = TimeSpan.Zero
+                    ClockSkew = TimeSpan.Zero,
                 };
                 options.Events = new JwtBearerEvents
                 {
@@ -104,6 +117,16 @@ namespace ADA.API
                         {
                             context.Fail("Unauthorized: Token has been logged out or invalidated.");
                         }
+                    },
+                    OnMessageReceived = context =>
+                    {
+                        var token = context.Request.Cookies["AuthToken"];
+
+                        if (!string.IsNullOrEmpty(token))
+                        {
+                            context.Token = token;
+                        }
+                        return Task.CompletedTask;
                     }
                 };
             });

@@ -87,5 +87,7 @@ namespace ADA.API.Repositories
             parameters.Add("@token", token, DbType.String, ParameterDirection.Input);
             _dapper.Insert(@"[dbo].[sp_LogoutAsync]", parameters);
         }
+
+
     }
 }

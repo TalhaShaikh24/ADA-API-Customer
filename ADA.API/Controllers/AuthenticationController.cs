@@ -8,11 +8,13 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Data.Common;
 using System.Linq;
 using System.Threading.Tasks;
+using AuthorizeAttribute = ADA.API.Utility.AuthorizeAttribute;
 
 namespace ADA.API.Controllers
 {
@@ -50,7 +52,9 @@ namespace ADA.API.Controllers
                 if (user == null) return CustomStatusResponse.GetResponse(320);
                 else
                 {
-                 
+
+                    var TokenExpiryDate = DateTime.UtcNow.AddMinutes(double.Parse(jwtSettings["ExpiryInMinutes"]));
+
                     response = CustomStatusResponse.GetResponse(200);
                     response.Token = _tokenManager.GenerateJwtToken(user);
                     response.Data = new
@@ -58,8 +62,17 @@ namespace ADA.API.Controllers
                         DataObj = user,
                     };
 
-                    await _authenticationService.SaveUserToken(user.Id, response.Token, DateTime.UtcNow, DateTime.UtcNow.AddMinutes(double.Parse(jwtSettings["ExpiryInMinutes"])));
+                    Response.Cookies.Append("AuthToken", response.Token, new CookieOptions
+                    {
+                        Path = "/",
+                        HttpOnly = true,
+                        Secure = false,
+                        SameSite = SameSiteMode.Lax,
+                        Expires = TokenExpiryDate
+                    });
 
+                    await _authenticationService.SaveUserToken(user.Id, response.Token, DateTime.UtcNow, TokenExpiryDate);
+                    
                     return response;
                 }
             }
@@ -131,6 +144,10 @@ namespace ADA.API.Controllers
                 return response;
             }
         }
+
+
+
+
 
     }
 

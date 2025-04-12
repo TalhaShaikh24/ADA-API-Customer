@@ -15,7 +15,7 @@ using System.Data.Common;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
-
+using AuthorizeAttribute = ADA.API.Utility.AuthorizeAttribute;
 
 namespace ADA.API.Controllers
 {

@@ -13,7 +13,7 @@ using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-
+using AuthorizeAttribute = ADA.API.Utility.AuthorizeAttribute;
 namespace ADA.API.Controllers
 {
     [Route("api/[controller]")]
