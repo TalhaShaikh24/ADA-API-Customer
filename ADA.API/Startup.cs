@@ -58,10 +58,10 @@ namespace ADA.API
                   options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
               });
 
-            services.AddControllers(options =>
-            {
-                options.Filters.Add(new Utility.AuthorizeAttribute());
-            });
+            //services.AddControllers(options =>
+            //{
+            //    options.Filters.Add(new Utility.AuthorizeAttribute());
+            //});
 
             services.AddAuthentication(options =>
             {
@@ -210,9 +210,12 @@ namespace ADA.API
             app.UseRouting();
 
             app.UseCors(options => options
-                .AllowAnyHeader()
-                .AllowAnyMethod()
-                .AllowAnyOrigin());
+    .AllowAnyHeader()
+    .AllowAnyMethod()
+    .SetIsOriginAllowed(_ => true) // <- allows any origin
+    .AllowCredentials());
+
+
 
             app.UseAuthentication();
             app.UseAuthorization();

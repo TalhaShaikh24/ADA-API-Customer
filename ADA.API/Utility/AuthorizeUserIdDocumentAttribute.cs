@@ -2,6 +2,8 @@
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc;
 using System;
+using System.IdentityModel.Tokens.Jwt;
+using System.Linq;
 
 namespace ADA.API.Utility
 {
@@ -16,14 +18,27 @@ namespace ADA.API.Utility
 
         public void OnAuthorization(AuthorizationFilterContext context)
         {
-            var userIdClaim = context.HttpContext.User.FindFirst("Id");
-            if (userIdClaim == null)
+            var httpContext = context.HttpContext;
+
+            var token = httpContext.Request.Cookies["AuthToken"];
+
+            if (token == null)
             {
                 context.Result = new JsonResult(CustomStatusResponse.GetResponse(401));
                 return;
             }
 
-            var userId = int.Parse(userIdClaim.Value);
+            var jsonToken = new JwtSecurityTokenHandler().ReadToken(token) as JwtSecurityToken;
+
+            if (jsonToken == null)
+            {
+                context.Result = new JsonResult(CustomStatusResponse.GetResponse(401));
+                return;
+            }
+
+            var userIdClaim = jsonToken?.Claims?.FirstOrDefault(c => c.Type == "Id")?.Value;
+
+            var userId = int.Parse(userIdClaim);
 
             if (!context.RouteData.Values.TryGetValue(_routeParameter, out var routeValue) ||
                 !int.TryParse(routeValue?.ToString(), out var routeId))
