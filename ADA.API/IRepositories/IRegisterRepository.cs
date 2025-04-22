@@ -33,7 +33,9 @@ namespace ADA.API.IRepositories
         object ResetPassword(CodeVerification obj);
 
         Register ActiveInactiveByUserId(int Id);
-        
+       
+
+
 
     }
 

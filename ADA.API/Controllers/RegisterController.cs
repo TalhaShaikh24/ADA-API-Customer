@@ -21,6 +21,7 @@ using System.Text;
 using System.Net.Http;
 using Microsoft.AspNetCore.Authorization;
 using AuthorizeAttribute = ADA.API.Utility.AuthorizeAttribute;
+using ADA.API.Helpers;
 namespace ADA.API.Controllers
 {
     [Route("api/[controller]")]
@@ -36,12 +37,20 @@ namespace ADA.API.Controllers
         private readonly IConfiguration _configuration;
         private readonly CacheManager<Register> cacheManager;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        public RegisterController(IWebHostEnvironment env, IHttpContextAccessor httpContextAccessor, IMemoryCache memoryCache, IRegisterService service, IConfiguration confgiuration)
+        private readonly EncryptionService _encryptionService;
+        public RegisterController(
+            IWebHostEnvironment env,
+            IHttpContextAccessor httpContextAccessor, 
+            IMemoryCache memoryCache, 
+            IRegisterService service,
+            EncryptionService encryptionService,
+            IConfiguration confgiuration)
         {
             _env = env;
             _configuration = confgiuration;
 
             _memoryCache = memoryCache;
+            _encryptionService = encryptionService;
 
             _service = service;
 
@@ -86,6 +95,8 @@ namespace ADA.API.Controllers
                     }
                 }
 
+                var encryptedPassword = _encryptionService.Encrypt(HttpContext.Request.Form["Password"].FirstOrDefault());
+
                 obj.Honorifics = HttpContext.Request.Form["Honorifics"].FirstOrDefault();
                 obj.Name = HttpContext.Request.Form["Name"].FirstOrDefault();
                 obj.Email = string.IsNullOrEmpty(HttpContext.Request.Form["Email"].FirstOrDefault())
@@ -93,7 +104,7 @@ namespace ADA.API.Controllers
                         : obj.Email;
                 obj.Nationality = HttpContext.Request.Form["Nationality"].FirstOrDefault();
                 obj.Username = HttpContext.Request.Form["Username"].FirstOrDefault();
-                obj.Password = HttpContext.Request.Form["Password"].FirstOrDefault();
+                obj.Password = encryptedPassword;
                 obj.Birthdate = Convert.ToDateTime(HttpContext.Request.Form["Birthdate"].FirstOrDefault());
                 obj.Mobile = HttpContext.Request.Form["Mobile"].FirstOrDefault();
                 obj.Documents = HttpContext.Request.Form["Documents"].FirstOrDefault();
@@ -173,9 +184,9 @@ namespace ADA.API.Controllers
                         images++;
                     }
                 }
-
+                var encryptedPassword = _encryptionService.Encrypt(HttpContext.Request.Form["Password"].FirstOrDefault());
                 obj.Username = HttpContext.Request.Form["Username"].FirstOrDefault();
-                obj.Password = HttpContext.Request.Form["Password"].FirstOrDefault();
+                obj.Password = encryptedPassword;
                 obj.Groups = data.ToList();
                 obj.IsDelmaIsland = Convert.ToBoolean(HttpContext.Request.Form["IsDelmaIsland"].FirstOrDefault());
                 obj.IsUAEId = Convert.ToBoolean(HttpContext.Request.Form["IsUAEId"].FirstOrDefault());
@@ -250,9 +261,9 @@ namespace ADA.API.Controllers
                         images++;
                     }
                 }
-
+                var encryptedPassword = _encryptionService.Encrypt(HttpContext.Request.Form["Password"].FirstOrDefault());
                 obj.Username = HttpContext.Request.Form["Username"].FirstOrDefault();
-                obj.Password = HttpContext.Request.Form["Password"].FirstOrDefault();
+                obj.Password = encryptedPassword;
                 obj.GovEntity = Convert.ToBoolean(HttpContext.Request.Form["GovEntity"].FirstOrDefault());
                 obj.IsDelmaIsland = Convert.ToBoolean(HttpContext.Request.Form["IsDelmaIsland"].FirstOrDefault());
                 obj.IsUAEId = Convert.ToBoolean(HttpContext.Request.Form["IsUAEId"].FirstOrDefault());
@@ -284,7 +295,7 @@ namespace ADA.API.Controllers
             }
         }
 
-        [Authorize]
+       // [Authorize]
         [HttpPost("GetAllGroupUsersByID")]
 
         public Response GetAllGroupUsersByID(int Id)
@@ -861,6 +872,7 @@ namespace ADA.API.Controllers
 
                     obj.FileName = fileNameOld;
                 }
+                var encryptedPassword = _encryptionService.Encrypt(HttpContext.Request.Form["Password"].FirstOrDefault());
 
                 obj.Id = Convert.ToInt32(HttpContext.Request.Form["Id"].FirstOrDefault());
                 obj.Honorifics = HttpContext.Request.Form["Honorifics"].FirstOrDefault();
@@ -870,7 +882,7 @@ namespace ADA.API.Controllers
                         : obj.Email;
                 obj.Nationality = HttpContext.Request.Form["Nationality"].FirstOrDefault();
                 obj.Username = HttpContext.Request.Form["Username"].FirstOrDefault();
-                obj.Password = HttpContext.Request.Form["Password"].FirstOrDefault();
+                obj.Password = encryptedPassword;
                 obj.Birthdate = Convert.ToDateTime(HttpContext.Request.Form["Birthdate"].FirstOrDefault());
                 obj.Mobile = HttpContext.Request.Form["Mobile"].FirstOrDefault();
                 obj.Documents = HttpContext.Request.Form["Documents"].FirstOrDefault();
@@ -1351,13 +1363,13 @@ namespace ADA.API.Controllers
             try
             {
 
+                var encryptedPassword = _encryptionService.Encrypt(HttpContext.Request.Form["Password"].FirstOrDefault());
 
-                
                 obj.VerifyCode = HttpContext.Request.Form["VerifyCode"].FirstOrDefault();
                 obj.Email = HttpContext.Request.Form["Email"].FirstOrDefault();
                 obj.Mobile = HttpContext.Request.Form["Mobile"].FirstOrDefault();
                 obj.Action = HttpContext.Request.Form["Action"].FirstOrDefault().Replace('#', ' ').Trim();
-                obj.Password = HttpContext.Request.Form["Password"].FirstOrDefault();
+                obj.Password = encryptedPassword;
                
                
 

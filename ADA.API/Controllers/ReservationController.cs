@@ -558,13 +558,27 @@ namespace ADA.API.Controllers
             {
 
                 var res = _service.GetBordingPassDetails(PNR);
+                var userId = int.Parse(User.FindFirst("Id")?.Value);
 
-                response = CustomStatusResponse.GetResponse(200);
-
-                if (res != null)
+                if (res.FirstOrDefault().UserId == userId)
                 {
 
+
+                    response = CustomStatusResponse.GetResponse(200);
+
+                    if (res != null)
+                    {
+
+                        response.Data = res;
+
+
+                    }
+                }
+                else
+                {
                     response.Data = res;
+                    response = CustomStatusResponse.GetResponse(401);
+                    response.ResponseMsg = CustomStatusResponse.GetResponse(401).ResponseMsg;
 
 
                 }

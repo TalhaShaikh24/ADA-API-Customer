@@ -1,4 +1,5 @@
-﻿using ADA.API.Utility;
+﻿using ADA.API.Helpers;
+using ADA.API.Utility;
 using ADA.IServices;
 using ADAClassLibrary;
 using ADAClassLibrary.DTOLibraries;
@@ -28,13 +29,15 @@ namespace ADA.API.Controllers
         private readonly IWebHostEnvironment _env;
         private readonly IConfiguration _configuration;
         public bool IsDBExceptionEnabeled = false;
-        public AuthenticationController(IConfiguration confgiuration, IAuthenticationService authenticationService, IMemoryCache memoryCache, IWebHostEnvironment env, TokenManager tokenManager)
+        private readonly EncryptionService _encryptionService;
+        public AuthenticationController(IConfiguration confgiuration, IAuthenticationService authenticationService, IMemoryCache memoryCache, IWebHostEnvironment env, TokenManager tokenManager, EncryptionService encryptionService)
         {
             _configuration = confgiuration;
             _memoryCache = memoryCache;
             _authenticationService = authenticationService;
             _env = env;
             _tokenManager = tokenManager;
+            _encryptionService = encryptionService;
         }
 
         [AllowAnonymous]
@@ -47,7 +50,9 @@ namespace ADA.API.Controllers
             {
                 var jwtSettings = _configuration.GetSection("JwtSettings");
 
-                // obj.Password = Secure.EncryptData(obj.Password);
+
+
+                obj.Password = _encryptionService.Encrypt(obj.Password);
                 var user = _authenticationService.Authenticate(obj);
                 if (user == null) return CustomStatusResponse.GetResponse(320);
                 else

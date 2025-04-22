@@ -6,6 +6,11 @@ using System.Threading.Tasks;
 
 namespace ADAClassLibrary
 {
+    public class Passwords
+    {
+        public int Id { get; set; }
+        public string Password { get; set; }
+    }
     public class Register
     {
         public int Id { get; set; }

@@ -140,6 +140,16 @@ namespace ADA.API
                 };
             });
 
+            // password Encryption
+            services.AddScoped<EncryptionService>(serviceProvider =>
+            {
+                var dapper = serviceProvider.GetRequiredService<IDapper>();
+                return new EncryptionService("1234563210123456", "6543210987654321", dapper);
+            });
+
+
+
+
             // Dependency Injection
             services.AddScoped<IDIUnit, DUnit>();
             services.AddScoped<IDapper, Dapperr>();

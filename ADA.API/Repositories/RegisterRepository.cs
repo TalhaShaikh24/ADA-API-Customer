@@ -1243,6 +1243,7 @@ namespace ADA.API.Repositories
 
             return data;
         }
+       
 
         public Register ActiveInactiveByUserId(int Id)
         {
