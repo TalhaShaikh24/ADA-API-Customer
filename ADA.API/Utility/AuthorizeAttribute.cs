@@ -18,7 +18,7 @@ namespace ADA.API.Utility
         {
           
 
-            var token = context.HttpContext.Request.Cookies["AuthToken"];
+            var token = context.HttpContext.Request.Headers["Authorization"].ToString();
 
             if (token == null)
             {

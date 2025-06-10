@@ -108,7 +108,7 @@ namespace ADA.API.Controllers
         }
 
 
-        [Authorize]
+        
         [HttpPost("SearchFlight")]
         public Response SearchFlight( [FromBody] SearchFlight obj)
         {

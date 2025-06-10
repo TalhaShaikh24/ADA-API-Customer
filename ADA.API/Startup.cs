@@ -54,12 +54,12 @@ namespace ADA.API
             {
                 throw new ArgumentException("JWT SecretKey must be at least 32 characters long");
             }
-            services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-             .AddCookie(options =>
-              {
-                  options.Cookie.HttpOnly = true;
-                  options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
-              });
+            //services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+            // .AddCookie(options =>
+            //  {
+            //      options.Cookie.HttpOnly = true;
+            //      options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+            //  });
 
             services.AddAuthentication(options =>
             {
@@ -83,7 +83,7 @@ namespace ADA.API
                 {
                     OnTokenValidated = async context =>
                     {
-                        var tokenFromRequest = context.Request.Cookies["AuthToken"];
+                        var tokenFromRequest = context.Request.Headers["Authorization"].ToString();
 
                         if (string.IsNullOrEmpty(tokenFromRequest))
                         {
@@ -128,7 +128,7 @@ namespace ADA.API
                     },
                     OnMessageReceived = context =>
                     {
-                        var token = context.Request.Cookies["AuthToken"];
+                        var token = context.Request.Headers["Authorization"].ToString();
 
                         if (!string.IsNullOrEmpty(token))
                         {

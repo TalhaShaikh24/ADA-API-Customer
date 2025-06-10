@@ -55,22 +55,23 @@ namespace ADA.API.Controllers
             return Ok();
         }
 
-        [HttpPost("decryptPaswordByUserId")]
-        public IActionResult decryptPaswordByUserId([FromBody] string password)
+        [HttpPost("DecryptAllPasswords")]
+        public IActionResult DecryptAllPasswords()
         {
-            if (string.IsNullOrEmpty(password))
-                return BadRequest("Encrypted password is required.");
+            DynamicParameters parameters = new DynamicParameters();
 
-            try
+            var data = _dapper.GetAll<Passwords>(@"[dbo].[GetAllPasswords]", parameters);
+
+
+            foreach (var item in data)
             {
-                var decrypted = _encryptionService.Decrypt(password);
-                return Ok(new { DecryptedPassword = decrypted });
+                var ep = _encryptionService.Decrypt(item.Password);
+                item.Password = ep;
+                _encryptionService.EncryptPassword(item);
             }
-            catch
-            {
-                return BadRequest("Invalid encrypted data.");
-            }
+            return Ok();
         }
+
     }
 
    

@@ -809,7 +809,7 @@ namespace ADA.API.Controllers
 
         }
 
-        [Authorize]
+       
         [HttpPost("Update")]
         public Response Update([FromForm] Register obj)
         {
@@ -917,7 +917,7 @@ namespace ADA.API.Controllers
             }
         }
 
-        [Authorize]
+        
         [HttpPost("UpdateGroup")]
         public Response UpdateGroup([FromForm] Register obj)
         {
@@ -1022,7 +1022,7 @@ namespace ADA.API.Controllers
             }
         }
 
-        [Authorize]
+        
         [HttpPost("UpdateCorporate")]
         public Response UpdateCorporate([FromForm] Register obj)
         {

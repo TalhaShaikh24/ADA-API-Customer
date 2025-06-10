@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -30,7 +31,10 @@ namespace ADA.API.Controllers
         private readonly IConfiguration _configuration;
         public bool IsDBExceptionEnabeled = false;
         private readonly EncryptionService _encryptionService;
-        public AuthenticationController(IConfiguration confgiuration, IAuthenticationService authenticationService, IMemoryCache memoryCache, IWebHostEnvironment env, TokenManager tokenManager, EncryptionService encryptionService)
+
+        private readonly ILogger<AuthenticationController> _logger;
+
+        public AuthenticationController(IConfiguration confgiuration, IAuthenticationService authenticationService, IMemoryCache memoryCache, IWebHostEnvironment env, TokenManager tokenManager, EncryptionService encryptionService, ILogger<AuthenticationController> logger)
         {
             _configuration = confgiuration;
             _memoryCache = memoryCache;
@@ -38,6 +42,7 @@ namespace ADA.API.Controllers
             _env = env;
             _tokenManager = tokenManager;
             _encryptionService = encryptionService;
+            _logger = logger;
         }
 
         [AllowAnonymous]
@@ -67,14 +72,17 @@ namespace ADA.API.Controllers
                         DataObj = user,
                     };
 
-                    Response.Cookies.Append("AuthToken", response.Token, new CookieOptions
-                    {
-                        Path = "/",
-                        HttpOnly = true,
-                        Secure = false,
-                        SameSite = SameSiteMode.Lax,
-                        Expires = TokenExpiryDate
-                    });
+                    //Response.Cookies.Append("AuthToken", response.Token, new CookieOptions
+                    //{
+                    //    Path = "/",
+                    //    HttpOnly = true,
+                    //    Secure = false,
+                    //    SameSite = SameSiteMode.Lax,
+                    //    Expires = TokenExpiryDate
+                    //});
+
+                  //  _logger.LogInformation("AuthToken Saved." + HttpContext.Request.Cookies["AuthToken"]);
+
 
                     await _authenticationService.SaveUserToken(user.Id, response.Token, DateTime.UtcNow, TokenExpiryDate);
                     
@@ -90,7 +98,6 @@ namespace ADA.API.Controllers
                 }
                 else
                 {
-
                     response.ResponseMsg = ex.Message;
                 }
                 return response;
@@ -115,7 +122,7 @@ namespace ADA.API.Controllers
 
                 var userId = int.Parse(User.FindFirst("Id")?.Value);
 
-                var token = Request.Cookies["AuthToken"];
+                var token = Request.Headers["Authorization"].ToString();
 
                 if (token != null)
                 {
